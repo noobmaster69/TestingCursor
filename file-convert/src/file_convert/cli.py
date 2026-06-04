@@ -7,22 +7,12 @@ import typer
 from rich.console import Console
 
 from file_convert import __version__
+from file_convert.core import ConversionRequest, get_registry, run_conversion
 from file_convert.doctor import run_doctor
 from file_convert.errors import ConvertError
 from file_convert.formats import infer_format, normalize_format
-from file_convert.handlers import build_registry
-from file_convert.models import ConversionJob
-from file_convert.output import resolve_output_path
 
 console = Console()
-_registry = None
-
-
-def _get_registry():
-    global _registry
-    if _registry is None:
-        _registry = build_registry()
-    return _registry
 
 
 def main(
@@ -41,6 +31,7 @@ def main(
     ] = False,
     doctor_flag: Annotated[bool, typer.Option("--doctor", help="Check dependencies")] = False,
     version_flag: Annotated[bool, typer.Option("--version", help="Show version")] = False,
+    gui_flag: Annotated[bool, typer.Option("--gui", help="Open graphical interface")] = False,
     dry_run: Annotated[bool, typer.Option("--dry-run", help="Preview without writing")] = False,
     force: Annotated[bool, typer.Option("--force", help="Overwrite existing output")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", help="Verbose errors")] = False,
@@ -57,13 +48,18 @@ def main(
     max_height: Annotated[Optional[int], typer.Option("--max-height")] = None,
 ) -> None:
     """Local-first file format converter."""
+    if gui_flag:
+        from file_convert.gui import run as run_gui
+
+        run_gui()
+        raise typer.Exit(0)
+
     if version_flag:
         console.print(__version__)
         raise typer.Exit(0)
 
     if list_formats_flag:
-        registry = _get_registry()
-        for src, tgt in registry.list_pairs():
+        for src, tgt in get_registry().list_pairs():
             console.print(f"  {src} -> {tgt}")
         raise typer.Exit(0)
 
@@ -72,13 +68,8 @@ def main(
         raise typer.Exit(0)
 
     if input_path is None:
-        console.print("Usage: convert INPUT --to FORMAT  (or convert --list-formats)")
-        raise typer.Exit(1)
-
-    registry = _get_registry()
-    src_fmt = normalize_format(from_format) if from_format else infer_format(input_path)
-    if not src_fmt:
-        console.print("[red]Could not detect input format. Use --from-format.[/red]")
+        console.print("Usage: file-convert INPUT --to FORMAT")
+        console.print("       file-convert --gui")
         raise typer.Exit(1)
 
     if list_zip or (to and normalize_format(to) == "list"):
@@ -103,32 +94,30 @@ def main(
         "verbose": verbose,
     }
 
-    job = ConversionJob(
+    request = ConversionRequest(
         source=input_path,
-        source_format=src_fmt,
         target_format=tgt_fmt,
         output=output,
-        options=options,
+        from_format=from_format,
         dry_run=dry_run,
         force=force,
         timeout=timeout,
+        options=options,
     )
 
     try:
-        handler = registry.resolve(src_fmt, tgt_fmt)
-        handler.validate(job)
+        response = run_conversion(request)
+        if not response.ok:
+            console.print(f"[red]{response.message}[/red]")
+            raise typer.Exit(response.exit_code)
 
         if tgt_fmt == "list":
-            result = handler.convert(job, input_path)
+            console.print(response.message)
         else:
-            out_path = resolve_output_path(job)
-            result = handler.convert(job, out_path)
-
-        if result.message:
             style = "yellow" if dry_run else "green"
-            console.print(f"[{style}]{result.message}[/{style}]")
-        if tgt_fmt != "list":
-            console.print(f"Output: {result.output_path}")
+            console.print(f"[{style}]{response.message}[/{style}]")
+            if response.output_path:
+                console.print(f"Output: {response.output_path}")
         raise typer.Exit(0)
 
     except ConvertError as exc:

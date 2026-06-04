@@ -1,12 +1,34 @@
 # file-convert
 
-Local-first CLI to convert files between common formats—no cloud upload.
+Convert files on your computer—no upload. Use the **GUI** (easiest) or the **command line**.
+
+## Quick start (GUI)
 
 ```bash
 cd file-convert
 pip install -e .
 
-# Prefer python -m or `file-convert` on Windows (avoids CONVERT.EXE name clash)
+# Double-click (Windows) or run:
+launch_gui.bat
+
+# Or from terminal:
+python -m file_convert.gui
+file-convert-gui
+file-convert --gui
+```
+
+### Using the window
+
+1. **Browse** — pick your file (Word, Excel, PDF, images, markdown, zip, etc.).
+2. **Convert to** — choose from formats that work for that file.
+3. **Save location** — optional; leave blank to save beside the original.
+4. Click **Convert** — then **Open output folder** or **Open output file**.
+
+Options appear when relevant (Excel sheet name, HTML theme, PDF pages/DPI).
+
+## Command line
+
+```bash
 python -m file_convert sample.md --to html --theme github
 file-convert data.xlsx --to csv --sheet "Sheet1"
 file-convert scan.pdf --to png --pages 1-3 --dpi 200
@@ -14,37 +36,20 @@ file-convert bundle.zip --list
 file-convert --doctor
 ```
 
-## Supported conversions (v0.1)
+On Windows, prefer `python -m file_convert` or `file-convert` — the bare `convert` command can clash with `CONVERT.EXE`.
+
+## Supported conversions
 
 | From | To | Notes |
 |------|-----|--------|
-| md | html | Themes: `github`, `minimal`, or path to `.css` |
-| xlsx | csv | `--sheet` name or index |
-| csv | xlsx | `--sheet` for output tab name |
-| pdf | png, jpg | `--pages`, `--dpi` |
-| png, jpg, webp, tiff | pdf | Single image |
-| heic | jpg | Requires `pip install -e ".[heic]"` |
-| docx, odt | pdf | Requires [LibreOffice](https://www.libreoffice.org/) |
-| zip | list | `convert file.zip --list` |
-
-Run `convert --list-formats` for the live list on your machine.
-
-## Options
-
-```
-convert INPUT --to FORMAT [-o OUTPUT] [--dry-run] [--force] [--verbose]
-```
-
-Format-specific: `--sheet`, `--encoding`, `--delimiter`, `--theme`, `--title`, `--pages`, `--dpi`, `--quality`, `--max-width`, `--max-height`
-
-## Exit codes
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | User error |
-| 2 | Missing dependency |
-| 3 | Conversion failed |
+| md | html | Themes: `github`, `minimal` |
+| xlsx | csv | Sheet name in GUI / `--sheet` |
+| csv | xlsx | |
+| pdf | png, jpg | Pages & DPI in GUI |
+| png, jpg, webp, tiff | pdf | |
+| heic | jpg | `pip install -e ".[heic]"` |
+| docx, odt | pdf | [LibreOffice](https://www.libreoffice.org/) |
+| zip | list | View contents in status log |
 
 ## Development
 
@@ -55,4 +60,4 @@ pytest
 
 ## Spec
 
-See [../docs/universal-file-converter.md](../docs/universal-file-converter.md) for the full product and technical specification.
+[../docs/universal-file-converter.md](../docs/universal-file-converter.md)

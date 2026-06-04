@@ -25,11 +25,10 @@ class ZipListHandler(BaseHandler):
                 duration_ms=0,
                 message=f"[dry-run] Would list {job.source} ({len(lines) - 1} entries)",
             )
-        print(text)
         return ConversionResult(
             output_path=job.source,
             duration_ms=0,
-            message=f"Listed {len(lines) - 1} entries",
+            message=text,
         )
 
     def _format_listing(self, path: Path) -> list[str]:
