@@ -28,6 +28,7 @@ env/
 # Project data (large or local)
 notebooks/data/
 *.csv
+!file-convert/tests/fixtures/*.csv
 
 # OS
 .DS_Store
