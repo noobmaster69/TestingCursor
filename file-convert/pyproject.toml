@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "file-convert"
+version = "0.1.0"
+description = "Local-first CLI to convert files between common formats"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "typer>=0.12",
+  "rich>=13",
+  "markdown>=3.5",
+  "pygments>=2.17",
+  "openpyxl>=3.1",
+  "pandas>=2.2",
+  "pymupdf>=1.24",
+  "Pillow>=10",
+  "img2pdf>=0.5",
+]
+
+[project.optional-dependencies]
+heic = ["pillow-heif>=0.16"]
+dev = ["pytest>=8", "ruff>=0.4"]
+
+[project.scripts]
+file-convert = "file_convert.cli:app"
+convert = "file_convert.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/file_convert"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/file_convert/data" = "file_convert/data"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "office: requires LibreOffice installed",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

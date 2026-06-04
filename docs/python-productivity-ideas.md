@@ -6,6 +6,8 @@ Planning doc for small Python utilities that save time on everyday tasks: conver
 
 ## 1. Universal File Converter (CLI)
 
+**Implementation:** [file-convert/](../file-convert/) — see [universal-file-converter.md](./universal-file-converter.md) for full spec.
+
 ### Concept
 
 One command to convert between common formats locally—no cloud upload, no account.
